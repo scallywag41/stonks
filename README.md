@@ -25,11 +25,11 @@ This implementation will give an 8, 9, count for TD Sequential.  After that coun
 
 This will add a gold "+" to the chart when volume is larger than average.
 
-# whale_vwap
+# whale_vwap.pine
 
 This will add a red "+" to the chart when volume is large in context of the VWAP
 
-# 9day
+# 9day.pine
 
 This is another bradvaughn.  I think it could use some math updates.  I have this on my chart, however, I usually turn it off buy/sell as I can see the 9day fairly well at this point.
 
