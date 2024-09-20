@@ -1,0 +1,34 @@
+//@version=5
+indicator("Whale Detection with VWAP", overlay=true)
+
+// Input parameters
+blockTradeVolume = input.int(600000, title="Minimum Block Trade Volume", minval=100000, step=100000)
+vwapLength = input.int(14, title="VWAP Length", minval=1)
+proximityThreshold = input.float(0.005, title="VWAP Proximity Threshold (percentage)", minval=0.001, step=0.001)
+
+// VWAP Calculation
+var float vwapSum = na
+var float vwapVolSum = na
+vwapSum := na(vwapSum[1]) ? close * volume : vwapSum[1] + close * volume
+vwapVolSum := na(vwapVolSum[1]) ? volume : vwapVolSum[1] + volume
+vwap = vwapSum / vwapVolSum
+
+// Historical Volume Average
+historicalVolumeAvg = ta.sma(volume, vwapLength)
+
+// Whale Detection
+isWhaleTrade = volume >= blockTradeVolume
+
+// VWAP Proximity Check
+priceDistanceFromVWAP = math.abs(close - vwap)
+vwapRange = vwap * proximityThreshold
+inProximity = priceDistanceFromVWAP <= vwapRange
+
+// Combine Conditions
+whaleAndProximity = isWhaleTrade and inProximity
+
+// Plot Whale Detection
+plotshape(series=whaleAndProximity, location=location.abovebar, color=color.red, style=shape.cross, size=size.small)
+
+
+

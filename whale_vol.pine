@@ -1,0 +1,23 @@
+//@version=5
+indicator("Whale Detector", overlay=true)
+
+// Parameters for detecting unusually large trades
+lookback = input.int(20, title="Lookback Period for Average Volume")
+volumeMultiplier = input.float(3.0, title="Volume Spike Multiplier") // Adjust to tweak sensitivity
+blockTradeThreshold = input.int(1000000, title="Block Trade Threshold (in asset's unit)") // Corrected line
+
+// Calculate average volume over the lookback period
+avgVolume = ta.sma(volume, lookback)
+
+// Detect unusually large volume
+unusualVolume = (volume > avgVolume * volumeMultiplier)
+
+// Flag candles that have volume spikes and large block trades
+whaleDetected = unusualVolume and volume > blockTradeThreshold
+
+// Plot an icon (cross) on the chart when whale activity is detected
+plotshape(whaleDetected, title="Whale Detected", location=location.abovebar, color=color.rgb(255, 215, 0), style=shape.cross, size=size.small)
+
+// Optional: Visualize average volume line
+plot(avgVolume, color=color.blue, title="Average Volume")
+
