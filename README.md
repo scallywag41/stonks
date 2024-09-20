@@ -7,6 +7,8 @@ Some of these I wrote with assistance from AI.  Some of them I ganked from other
 
 Usage:  Just cut/paste the code into the tradingview code window and "save as".  I recommend using the name for the script name.  I.E. fibbands, whale_vol etc.  Then add indicator to chart.
 
+Goodluckhavefun!
+
 # fibbands.pine
 
 This is one I "borrowed" from bradvaughn.  It should add upper and lower bands to the chart using fibonacci.
@@ -35,3 +37,8 @@ This is another bradvaughn.  I think it could use some math updates.  I have thi
 
 This is my current scanner.  Once you save it you can modify it to give you up to 10 stocks.  Then you can use this to create additional tables by modifying the location and stocks in a different script.  This will yeild a result that looks like this:
 ![plot](./Screenshot_137.jpg)
+
+# Recommendations
+
+Add a RSI indicator to your chart.
+Add a MACD indicator to your chart.
