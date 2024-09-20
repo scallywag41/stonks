@@ -27,6 +27,10 @@ This will add a gold "+" to the chart when volume is larger than average.
 
 This will add a red "+" to the chart when volume is large in context of the VWAP
 
+# 9day
+
+This is another bradvaughn.  I think it could use some math updates.  I have this on my chart, however, I usually turn it off buy/sell as I can see the 9day fairly well at this point.
+
 # scanner.pine
 
 This is my current scanner.  Once you save it you can modify it to give you up to 10 stocks.  Then you can use this to create additional tables by modifying the location and stocks in a different script.  This will yeild a result that looks like this:
