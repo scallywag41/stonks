@@ -1,0 +1,160 @@
+//@version=5
+indicator("Tex Santos with TD Sequential and MACD", overlay=false)
+
+
+// Define the list of symbols as inputs
+symbol1 = input.string("VB", title="Symbol 1")
+symbol2 = input.string("IWM", title="Symbol 2")
+symbol3 = input.string("TSLA", title="Symbol 3")
+symbol4 = input.string("WBD", title="Symbol 4")
+symbol5 = input.string("PLTR", title="Symbol 5")
+symbol6 = input.string("ABEV", title="Symbol 6")
+symbol7 = input.string("MPW", title="Symbol 7")
+symbol8 = input.string("BTG", title="Symbol 8")
+symbol9 = input.string("USO", title="Symbol 9")
+symbol10 = input.string("SOFI", title="Symbol 10")
+// Define the length of the SMAs
+sma9Length = 9
+sma200Length = 200
+
+// Initialize arrays to store data
+var float[] closes = array.new_float(10, na)
+var float[] lows = array.new_float(10, na)
+var float[] highs = array.new_float(10, na)
+var float[] sma9s = array.new_float(10, na)
+var float[] sma200s = array.new_float(10, na)
+var float[] rsis = array.new_float(10, na)
+var float[] macdHist = array.new_float(10, na)
+var int[] tdCounts = array.new_int(10, na)
+var string[] macdMessages = array.new_string(10, na)
+var bool[] overshootTriggers = array.new_bool(10, na)
+
+// Function to request security data and fill arrays
+request_data(symbol, index) =>
+    [symbolClose, symbolLow, symbolHigh, symbolSma9, symbolSma200, symbolRsi] = request.security(symbol, timeframe.period, [close, low, high, ta.sma(close, sma9Length), ta.sma(close, sma200Length), ta.rsi(close, 14)])
+    [macdLine, signalLine, hist] = ta.macd(symbolClose, 12, 26, 9)
+
+    // Calculate TD Sequential Setup count
+    setupCount = 0
+    for i = 1 to 9
+        setupCount := symbolClose[i] < symbolClose[i + 4] ? setupCount + 1 : setupCount
+
+    // Check MACD crossover
+    bullishCross = ta.crossover(macdLine, signalLine)
+    bearishCross = ta.crossunder(macdLine, signalLine)
+
+    macdMessage = ""
+    if bullishCross
+        macdMessage := "Bullish Cross"
+    if bearishCross
+        macdMessage := "Bearish Cross"
+
+    // Check TD Sequential overshoot conditions
+    sellovershoot = ta.barssince(symbolClose < symbolClose[4]) == 13
+    sellovershoot1 = ta.barssince(symbolClose < symbolClose[4]) == 14
+    sellovershoot2 = ta.barssince(symbolClose < symbolClose[4]) == 15
+    sellovershoot3 = ta.barssince(symbolClose < symbolClose[4]) == 16
+    buyovershoot = ta.barssince(symbolClose > symbolClose[4]) == 13
+    buyovershoot1 = ta.barssince(symbolClose > symbolClose[4]) == 14
+    buyovershoot2 = ta.barssince(symbolClose > symbolClose[4]) == 15
+    buyovershoot3 = ta.barssince(symbolClose > symbolClose[4]) == 16
+
+    // Determine if "EOL" condition is met
+    eol = sellovershoot or sellovershoot1 or sellovershoot2 or sellovershoot3 or
+          buyovershoot or buyovershoot1 or buyovershoot2 or buyovershoot3
+
+    array.set(closes, index, symbolClose)
+    array.set(lows, index, symbolLow)
+    array.set(highs, index, symbolHigh)
+    array.set(sma9s, index, symbolSma9)
+    array.set(sma200s, index, symbolSma200)
+    array.set(rsis, index, symbolRsi)
+    array.set(macdHist, index, hist)
+    array.set(tdCounts, index, setupCount)
+    array.set(macdMessages, index, macdMessage)
+    array.set(overshootTriggers, index, eol)
+
+// Request data for each symbol
+request_data(symbol1, 0)
+request_data(symbol2, 1)
+request_data(symbol3, 2)
+request_data(symbol4, 3)
+request_data(symbol5, 4)
+request_data(symbol6, 5)
+request_data(symbol7, 6)
+request_data(symbol8, 7)
+request_data(symbol9, 8)
+request_data(symbol10, 9)
+
+// Initialize a table to display the results
+var table scanResults = table.new(position.top_left, 7, 11, border_width = 1)
+
+// Add table headers
+if (bar_index == 0)
+    table.cell(scanResults, 0, 0, "Symbol", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 1, 0, "200", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 2, 0, "RSI", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 3, 0, "TDS", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 4, 0, "9 Day", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 5, 0, "MACD", bgcolor=color.gray, text_color=color.white)
+    table.cell(scanResults, 6, 0, "EOL", bgcolor=color.gray, text_color=color.white)
+
+// Define a function to populate the table for each symbol
+f_populate_table(row, symbol, index) =>
+    todayClose = array.get(closes, index)
+    todayLow = array.get(lows, index)
+    todayHigh = array.get(highs, index)
+    sma9 = array.get(sma9s, index)
+    sma200 = array.get(sma200s, index)
+    rsi = array.get(rsis, index)
+    hist = array.get(macdHist, index)
+    tdCount = array.get(tdCounts, index)
+    macdMessage = array.get(macdMessages, index)
+    overshoot = array.get(overshootTriggers, index)
+
+    status200 = todayClose > sma200 ? "Above" : "Below"
+    bgColor200 = todayClose > sma200 ? color.new(color.green, 80) : color.new(color.red, 80)
+    rsiMessage = rsi > 70 ? "Over Bought" : rsi < 30 ? "Over Sold" : ""
+    rsiBgColor = rsi > 70 ? color.new(color.green, 80) : rsi < 30 ? color.new(color.red, 80) : na
+
+    var string nineDayStatus = ""
+    var color nineDayBgColor = na
+
+    // Check 9-day conditions
+    yesterdayLow = request.security(symbol, timeframe.period, low[1])
+    yesterdayHigh = request.security(symbol, timeframe.period, high[1])
+    yesterdaySma9 = request.security(symbol, timeframe.period, ta.sma(close[1], sma9Length))
+    if yesterdayLow <= yesterdaySma9 and todayLow > sma9
+        nineDayStatus := "Buy"
+        nineDayBgColor := color.new(color.green, 80)
+    else if yesterdayHigh >= yesterdaySma9 and todayHigh < sma9
+        nineDayStatus := "Sell"
+        nineDayBgColor := color.new(color.red, 80)
+    else if (yesterdayLow >= yesterdaySma9 and todayLow >= sma9) or (yesterdayHigh <= yesterdaySma9 and todayHigh <= sma9)
+        nineDayStatus := "" // Clear the status if both today and yesterday are above or below the 9-day SMA
+
+    // Determine EOL status
+    eolStatus = overshoot ? "EOL" : ""
+    eolBgColor = overshoot ? color.new(color.yellow, 80) : na
+
+    // Populate the table for each symbol
+    table.cell(scanResults, 0, row, symbol, text_color=color.white)
+    table.cell(scanResults, 1, row, status200, text_color=color.white, bgcolor=bgColor200)
+    table.cell(scanResults, 2, row, rsiMessage, text_color=color.white, bgcolor=rsiBgColor)
+    table.cell(scanResults, 3, row, tdCount > 8 ? str.tostring(tdCount) : "", text_color=color.white)
+    table.cell(scanResults, 4, row, nineDayStatus != "" ? nineDayStatus : na, text_color=color.white, bgcolor=nineDayBgColor)
+    table.cell(scanResults, 5, row, macdMessage, text_color=color.white)
+    table.cell(scanResults, 6, row, eolStatus, text_color=color.white, bgcolor=eolBgColor)
+
+// Populate the table for each symbol
+f_populate_table(1, symbol1, 0)
+f_populate_table(2, symbol2, 1)
+f_populate_table(3, symbol3, 2)
+f_populate_table(4, symbol4, 3)
+f_populate_table(5, symbol5, 4)
+f_populate_table(6, symbol6, 5)
+f_populate_table(7, symbol7, 6)
+f_populate_table(8, symbol8, 7)
+f_populate_table(9, symbol9, 8)
+f_populate_table(10, symbol10, 9)
+
