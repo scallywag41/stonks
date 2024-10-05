@@ -1,5 +1,5 @@
 //@version=5
-indicator("Tex Santos with TD Sequential and MACD", overlay=false)
+indicator("Tex Santos Up Left", overlay=false)
 
 
 // Define the list of symbols as inputs
@@ -50,14 +50,14 @@ request_data(symbol, index) =>
         macdMessage := "Bearish Cross"
 
     // Check TD Sequential overshoot conditions
-    sellovershoot = ta.barssince(symbolClose < symbolClose[4]) == 13
-    sellovershoot1 = ta.barssince(symbolClose < symbolClose[4]) == 14
-    sellovershoot2 = ta.barssince(symbolClose < symbolClose[4]) == 15
-    sellovershoot3 = ta.barssince(symbolClose < symbolClose[4]) == 16
-    buyovershoot = ta.barssince(symbolClose > symbolClose[4]) == 13
-    buyovershoot1 = ta.barssince(symbolClose > symbolClose[4]) == 14
-    buyovershoot2 = ta.barssince(symbolClose > symbolClose[4]) == 15
-    buyovershoot3 = ta.barssince(symbolClose > symbolClose[4]) == 16
+    sellovershoot = ta.barssince(symbolClose < symbolClose[4]) == 10 or ta.barssince(symbolClose < symbolClose[4]) == 11
+    sellovershoot1 = ta.barssince(symbolClose < symbolClose[4]) == 12 or ta.barssince(symbolClose < symbolClose[4]) == 13
+    sellovershoot2 = ta.barssince(symbolClose < symbolClose[4]) == 14 or ta.barssince(symbolClose < symbolClose[4]) == 15
+    sellovershoot3 = ta.barssince(symbolClose < symbolClose[4]) == 16 or ta.barssince(symbolClose < symbolClose[4]) == 17
+    buyovershoot = ta.barssince(symbolClose > symbolClose[4]) == 10 or ta.barssince(symbolClose < symbolClose[4]) == 11
+    buyovershoot1 = ta.barssince(symbolClose > symbolClose[4]) == 12 or ta.barssince(symbolClose < symbolClose[4]) == 13
+    buyovershoot2 = ta.barssince(symbolClose > symbolClose[4]) == 14 or ta.barssince(symbolClose < symbolClose[4]) == 15
+    buyovershoot3 = ta.barssince(symbolClose > symbolClose[4]) == 16 or ta.barssince(symbolClose < symbolClose[4]) == 17
 
     // Determine if "EOL" condition is met
     eol = sellovershoot or sellovershoot1 or sellovershoot2 or sellovershoot3 or
@@ -146,6 +146,27 @@ f_populate_table(row, symbol, index) =>
     table.cell(scanResults, 5, row, macdMessage, text_color=color.white)
     table.cell(scanResults, 6, row, eolStatus, text_color=color.white, bgcolor=eolBgColor)
 
+// Function to trigger alerts for EOL conditions
+f_trigger_eol_alerts() =>
+    symbols = array.new_string(10, "")
+    array.set(symbols, 0, symbol1)
+    array.set(symbols, 1, symbol2)
+    array.set(symbols, 2, symbol3)
+    array.set(symbols, 3, symbol4)
+    array.set(symbols, 4, symbol5)
+    array.set(symbols, 5, symbol6)
+    array.set(symbols, 6, symbol7)
+    array.set(symbols, 7, symbol8)
+    array.set(symbols, 8, symbol9)
+    array.set(symbols, 9, symbol10)
+
+    for i = 0 to 9
+        overshoot = array.get(overshootTriggers, i)
+        if overshoot
+            symbolName = array.get(symbols, i)
+            alert("EOL condition triggered for " + symbolName, alert.freq_once_per_bar)
+
+
 // Populate the table for each symbol
 f_populate_table(1, symbol1, 0)
 f_populate_table(2, symbol2, 1)
@@ -158,3 +179,5 @@ f_populate_table(8, symbol8, 7)
 f_populate_table(9, symbol9, 8)
 f_populate_table(10, symbol10, 9)
 
+// Trigger alerts for all symbols where the EOL condition is met
+f_trigger_eol_alerts()
